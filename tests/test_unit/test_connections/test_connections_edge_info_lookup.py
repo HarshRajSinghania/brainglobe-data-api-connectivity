@@ -81,7 +81,7 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
             {"name": "B"},
             None,
             True,
-            (1, 7),
+            (1, 9),
             id="A to B",
         ),
         pytest.param(
@@ -89,7 +89,7 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
             {"name": "C"},
             None,
             True,
-            (2, 7),
+            (2, 9),
             id="A to C",
         ),
         pytest.param(
@@ -97,7 +97,7 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
             {"name": "A"},
             None,
             True,
-            (1, 7),
+            (1, 9),
             id="B to A",
         ),
         pytest.param(
@@ -105,7 +105,7 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
             {"name": "A"},
             NodeIs.INPUT,
             False,
-            (0, 7),
+            (0, 9),
             id="B to A input only",
         ),
     ],
