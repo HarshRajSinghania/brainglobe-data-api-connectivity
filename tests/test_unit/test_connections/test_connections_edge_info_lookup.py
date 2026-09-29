@@ -2,7 +2,10 @@ import polars as pl
 import pytest
 
 from brainglobe_data_api_connectivity.connections import Connections
-from brainglobe_data_api_connectivity.connections.query_opts import NodeIs
+from brainglobe_data_api_connectivity.connections.query_opts import (
+    ConnectionsLookup,
+    NodeIs,
+)
 
 
 @pytest.fixture
@@ -84,7 +87,7 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
         pytest.param(
             {"name": "A"},
             {"name": "B"},
-            None,
+            NodeIs.ANY,
             True,
             (1, 9),
             id="A to B",
@@ -92,7 +95,7 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
         pytest.param(
             {"name": "A"},
             {"name": "C"},
-            None,
+            NodeIs.ANY,
             True,
             (2, 9),
             id="A to C",
@@ -100,7 +103,7 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
         pytest.param(
             {"name": "B"},
             {"name": "A"},
-            None,
+            NodeIs.ANY,
             True,
             (1, 9),
             id="B to A",
@@ -132,7 +135,7 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
         pytest.param(
             {"name": "A"},
             {"name": "D"},
-            None,
+            NodeIs.ANY,
             False,
             (0, 9),
             id="A to D (no direct connection)",
@@ -146,6 +149,7 @@ def test_has_direct_connection_between(
         node0,
         node1,
         node0_as=node0_as,
+        connections_lookup=ConnectionsLookup.ALL,
     )
 
     assert has_connection == expected_bool

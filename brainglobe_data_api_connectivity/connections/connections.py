@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Container, Hashable, Iterable, Tuple
 
@@ -547,33 +548,84 @@ class Connections:
         node0_idx = idx_node0[0]
         node1_idx = idx_node1[0]
 
-        connections_in, connections_out = self.direct_connections(
-            node0_idx,
-            node_as=node0_as,
-            connections_lookup=connections_lookup,
-        )
+        (node0,) = node0_node_id.values()
+        (node1,) = node1_node_id.values()
 
-        # If no connection exists, return empty DataFrame
-        if (
-            node1_idx not in connections_in
-            and node1_idx not in connections_out
-        ):
+        if connections_lookup == ConnectionsLookup.ALL:
             if self.edge_info is None:
-                return False, pl.DataFrame()
-            return False, self.edge_info.head(0)
+                warnings.warn(
+                    "No edge information available. "
+                    "Using graph information instead.",
+                    UserWarning,
+                )
+            else:
+                from_col = pl.col(self.edge_info_from_col)
+                to_col = pl.col(self.edge_info_to_col)
 
-        # At this point, edge_info must exist
-        assert self.edge_info is not None
+                node0_as_any_edge_info = self.edge_info.head(0)
 
-        from_col = pl.col(self.edge_info_from_col)
-        to_col = pl.col(self.edge_info_to_col)
+                node0_as_input_edge_info = self.edge_info.filter(
+                    ((from_col == node0) & (to_col == node1))
+                )
 
-        node0_value = next(iter(node0_node_id.values()))
-        node1_value = next(iter(node1_node_id.values()))
+                if node0_as == NodeIs.INPUT:
+                    return (
+                        not node0_as_input_edge_info.is_empty(),
+                        node0_as_input_edge_info,
+                    )
 
-        df = self.edge_info.filter(
-            ((from_col == node0_value) & (to_col == node1_value))
-            | ((from_col == node1_value) & (to_col == node0_value))
-        )
+                node0_as_any_edge_info.extend(node0_as_input_edge_info)
 
-        return True, df
+                node0_as_output_edge_info = self.edge_info.filter(
+                    ((from_col == node1) & (to_col == node0))
+                )
+
+                if node0_as == NodeIs.OUTPUT:
+                    return (
+                        not node0_as_output_edge_info.is_empty(),
+                        node0_as_output_edge_info,
+                    )
+
+                node0_as_any_edge_info.extend(node0_as_output_edge_info)
+
+                if node0_as == NodeIs.ANY:
+                    return (
+                        not node0_as_any_edge_info.is_empty(),
+                        node0_as_any_edge_info,
+                    )
+
+        node0_as_any_data = pl.DataFrame(schema=["from", "to", "strength"])
+
+        if self.network.has_edge(node0_idx, node1_idx):
+            node0_as_input_strength = self.network.get_edge_data(
+                node0_idx, node1_idx
+            )
+            node0_as_input_data = pl.DataFrame(
+                {
+                    "from": node0,
+                    "to": node1,
+                    "strength": node0_as_input_strength,
+                }
+            )
+            if node0_as == NodeIs.INPUT:
+                return True, node0_as_input_data
+
+            node0_as_any_data.extend(node0_as_input_data)
+
+        if self.network.has_edge(node1_idx, node0_idx):
+            node0_as_output_strength = self.network.get_edge_data(
+                node1_idx, node0_idx
+            )
+            node0_as_output_data = pl.DataFrame(
+                {
+                    "from": node1,
+                    "to": node0,
+                    "strength": node0_as_output_strength,
+                }
+            )
+            if node0_as == NodeIs.OUTPUT:
+                return True, node0_as_output_data
+
+            node0_as_any_data.extend(node0_as_output_data)
+
+        return not node0_as_any_data.is_empty(), node0_as_any_data
