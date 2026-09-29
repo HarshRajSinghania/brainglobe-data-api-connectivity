@@ -18,7 +18,7 @@ def nodes() -> pl.DataFrame:
                 "C is part of group C",
                 "D is part of group D",
             ],
-            "custom_index": [1, 2, 3, 4, 5],
+            "custom_index": [1, 2, 3, 4],
         }
     )
 
