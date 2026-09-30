@@ -77,7 +77,7 @@ def edge_info() -> pl.DataFrame:
 
 @pytest.fixture
 def mini_G(nodes, edge_list, edge_info) -> Connections:
-    """"""
+    """Small Connections instance for testing"""
     return Connections(nodes, edge_list, edge_info)
 
 
@@ -192,6 +192,7 @@ def test_has_direct_connection_between(
     expected_bool,
     expected_shape,
 ):
+    """Test finding direct connections between two nodes."""
     has_connection, connections = mini_G.direct_connection_between(
         node0,
         node1,

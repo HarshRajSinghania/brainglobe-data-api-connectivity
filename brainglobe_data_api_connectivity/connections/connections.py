@@ -529,7 +529,36 @@ class Connections:
         connections_lookup: ConnectionsLookup = ConnectionsLookup.REPORTED,
         node0_as: NodeIs = NodeIs.ANY,
     ) -> Tuple[bool, pl.DataFrame]:
-        """"""
+        """Report direct connections between two nodes.
+
+        By default, the method will look for direct connections in either
+        direction between `node0` and `node1`.  Use the `NodeIs` to specify
+        a direction.
+
+        Args:
+            node0_node_id: dict[str, str]
+                Information identifying node0.
+            node1_node_id: dict[str, str]
+                Information identifying node1.
+            connections_lookup: ConnectionsLookup
+                The source to use when searching for connections. One can
+                choose to use either the `.network` (REPORTED) or `.edge_info`
+                (ALL) as the source from which to find connections.
+            node0_as: NodeIs
+                The role `node0` should play in the connection, i.e. whether
+                `node0` should be the input (source) or output (target) node,
+                or can be any.
+
+        Returns:
+            has_connection: bool
+                Whether a direct connection exists between the nodes.
+            connections: pl.DataFrame
+                Matching direct connections.
+
+        Raises:
+            ValueError:
+                If either input does not identify exactly one node.
+        """
 
         idx_node0 = self.node_indexes_from_information(
             **node0_node_id
