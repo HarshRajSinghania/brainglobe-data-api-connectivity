@@ -430,6 +430,32 @@ class Connections:
             pl.col(self._node_internal_index_col).is_in(node_indexes)
         )
 
+    def _get_unique_node_index(self, node_id: dict[str, str]) -> int:
+        """Return the internal index for a node.
+
+        Also checks whether node is valid (existent and unique).
+
+        Args:
+            node_id:
+                Information identifying the node.
+
+        Returns:
+            Internal index of the identified node.
+
+        Raises:
+            ValueError:
+                If `node_id` does not identify exactly one node.
+        """
+        node_indexes = self.node_indexes_from_information(**node_id).to_list()
+
+        if len(node_indexes) != 1:
+            raise ValueError(
+                "Expected 1 unique node, "
+                f"but got {len(node_indexes)} for {node_id}."
+            )
+
+        return node_indexes[0]
+
     def direct_connections(
         self,
         node_internal_index: int,
@@ -560,22 +586,8 @@ class Connections:
                 If either input does not identify exactly one node.
         """
 
-        idx_node0 = self.node_indexes_from_information(
-            **node0_node_id
-        ).to_list()
-        idx_node1 = self.node_indexes_from_information(
-            **node1_node_id
-        ).to_list()
-
-        if len(idx_node0) != 1 or len(idx_node1) != 1:
-            raise ValueError(
-                f"Expected exactly 1 unique node for each input, "
-                f"but got {len(idx_node0)} for node0 ({node0_node_id}) "
-                f"and {len(idx_node1)} for node1 ({node1_node_id})."
-            )
-
-        node0_idx = idx_node0[0]
-        node1_idx = idx_node1[0]
+        node0_idx = self._get_unique_node_index(node0_node_id)
+        node1_idx = self._get_unique_node_index(node1_node_id)
 
         (node0,) = node0_node_id.values()
         (node1,) = node1_node_id.values()
