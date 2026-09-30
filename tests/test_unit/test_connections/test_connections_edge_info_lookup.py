@@ -173,6 +173,15 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
             id="B (as OUTPUT) and A (reported only)",
         ),
         pytest.param(
+            {"name": "B"},
+            {"name": "A"},
+            NodeIs.OUTPUT,
+            ConnectionsLookup.ALL,
+            True,
+            (1, 9),
+            id="B (as OUTPUT) and A",
+        ),
+        pytest.param(
             {"name": "A"},
             {"name": "B"},
             NodeIs.INPUT,
