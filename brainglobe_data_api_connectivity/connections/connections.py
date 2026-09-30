@@ -456,6 +456,36 @@ class Connections:
 
         return node_indexes[0]
 
+    def _get_available_connection_lookup(
+        self,
+        connections_lookup: ConnectionsLookup,
+    ) -> ConnectionsLookup:
+        """Set the connection lookup source based on the available information.
+
+        If all connections are requested but edge information is unavailable,
+        warn the user and fall back to connections reported by the graph.
+
+        Args:
+            connections_lookup:
+                Requested source for connection lookup.
+
+        Returns:
+            The requested lookup source if available; otherwise,
+            `ConnectionsLookup.REPORTED`.
+        """
+        if (
+            connections_lookup == ConnectionsLookup.ALL
+            and self.edge_info is None
+        ):
+            warnings.warn(
+                "No edge information available. "
+                "Using graph information instead.",
+                UserWarning,
+            )
+            return ConnectionsLookup.REPORTED
+
+        return connections_lookup
+
     def direct_connections(
         self,
         node_internal_index: int,
@@ -586,6 +616,10 @@ class Connections:
                 If either input does not identify exactly one node.
         """
 
+        connections_lookup = self._get_available_connection_lookup(
+            connections_lookup
+        )
+
         node0_idx = self._get_unique_node_index(node0_node_id)
         node1_idx = self._get_unique_node_index(node1_node_id)
 
@@ -593,47 +627,41 @@ class Connections:
         (node1,) = node1_node_id.values()
 
         if connections_lookup == ConnectionsLookup.ALL:
-            if self.edge_info is None:
-                warnings.warn(
-                    "No edge information available. "
-                    "Using graph information instead.",
-                    UserWarning,
-                )
-            else:
-                from_col = pl.col(self.edge_info_from_col)
-                to_col = pl.col(self.edge_info_to_col)
+            assert self.edge_info is not None
+            from_col = pl.col(self.edge_info_from_col)
+            to_col = pl.col(self.edge_info_to_col)
 
-                node0_as_any_edge_info = self.edge_info.head(0)
+            node0_as_any_edge_info = self.edge_info.head(0)
 
-                node0_as_input_edge_info = self.edge_info.filter(
-                    ((from_col == node0) & (to_col == node1))
-                )
+            node0_as_input_edge_info = self.edge_info.filter(
+                ((from_col == node0) & (to_col == node1))
+            )
 
-                if node0_as == NodeIs.INPUT:
-                    return (
-                        not node0_as_input_edge_info.is_empty(),
-                        node0_as_input_edge_info,
-                    )
-
-                node0_as_any_edge_info.extend(node0_as_input_edge_info)
-
-                node0_as_output_edge_info = self.edge_info.filter(
-                    ((from_col == node1) & (to_col == node0))
+            if node0_as == NodeIs.INPUT:
+                return (
+                    not node0_as_input_edge_info.is_empty(),
+                    node0_as_input_edge_info,
                 )
 
-                if node0_as == NodeIs.OUTPUT:
-                    return (
-                        not node0_as_output_edge_info.is_empty(),
-                        node0_as_output_edge_info,
-                    )
+            node0_as_any_edge_info.extend(node0_as_input_edge_info)
 
-                node0_as_any_edge_info.extend(node0_as_output_edge_info)
+            node0_as_output_edge_info = self.edge_info.filter(
+                ((from_col == node1) & (to_col == node0))
+            )
 
-                if node0_as == NodeIs.ANY:
-                    return (
-                        not node0_as_any_edge_info.is_empty(),
-                        node0_as_any_edge_info,
-                    )
+            if node0_as == NodeIs.OUTPUT:
+                return (
+                    not node0_as_output_edge_info.is_empty(),
+                    node0_as_output_edge_info,
+                )
+
+            node0_as_any_edge_info.extend(node0_as_output_edge_info)
+
+            if node0_as == NodeIs.ANY:
+                return (
+                    not node0_as_any_edge_info.is_empty(),
+                    node0_as_any_edge_info,
+                )
 
         dataframes = []
 
