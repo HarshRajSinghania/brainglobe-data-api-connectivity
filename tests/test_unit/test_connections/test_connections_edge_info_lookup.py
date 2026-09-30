@@ -101,6 +101,15 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
             id="A and B",
         ),
         pytest.param(
+            {"name": "B"},
+            {"name": "A"},
+            NodeIs.ANY,
+            ConnectionsLookup.REPORTED,
+            True,
+            (1, 3),
+            id="B and A",
+        ),
+        pytest.param(
             {"name": "A"},
             {"name": "C"},
             NodeIs.ANY,
