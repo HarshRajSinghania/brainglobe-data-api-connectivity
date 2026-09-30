@@ -211,3 +211,23 @@ def test_has_direct_connection_between(
 
     assert has_connection == expected_bool
     assert connections.shape == expected_shape
+
+
+def test_direct_connection_between_no_edge_info(mini_G):
+    """Test graph fallback when edge information is unavailable."""
+    mini_G.edge_info = None
+
+    with pytest.warns(
+        UserWarning,
+        match="No edge information available. "
+        "Using graph information instead.",
+    ):
+        has_connection, connections = mini_G.direct_connection_between(
+            {"name": "A"},
+            {"name": "C"},
+            node0_as=NodeIs.ANY,
+            connections_lookup=ConnectionsLookup.ALL,
+        )
+
+    assert has_connection is True
+    assert connections.shape == (1, 3)
