@@ -594,38 +594,44 @@ class Connections:
                         node0_as_any_edge_info,
                     )
 
-        node0_as_any_data = pl.DataFrame(schema=["from", "to", "strength"])
+        dataframes = []
 
-        if self.network.has_edge(node0_idx, node1_idx):
-            node0_as_input_strength = self.network.get_edge_data(
-                node0_idx, node1_idx
-            )
-            node0_as_input_data = pl.DataFrame(
-                {
-                    "from": node0,
-                    "to": node1,
-                    "strength": node0_as_input_strength,
-                }
-            )
-            if node0_as == NodeIs.INPUT:
-                return True, node0_as_input_data
+        if node0_as is not NodeIs.OUTPUT:
+            if self.network.has_edge(node0_idx, node1_idx):
+                node0_as_input_strength = self.network.get_edge_data(
+                    node0_idx, node1_idx
+                )
+                node0_as_input_data = pl.DataFrame(
+                    {
+                        "from": node0,
+                        "to": node1,
+                        "strength": node0_as_input_strength,
+                    }
+                )
+                if node0_as == NodeIs.INPUT:
+                    return True, node0_as_input_data
 
-            node0_as_any_data.extend(node0_as_input_data)
+                dataframes.append(node0_as_input_data)
 
-        if self.network.has_edge(node1_idx, node0_idx):
-            node0_as_output_strength = self.network.get_edge_data(
-                node1_idx, node0_idx
-            )
-            node0_as_output_data = pl.DataFrame(
-                {
-                    "from": node1,
-                    "to": node0,
-                    "strength": node0_as_output_strength,
-                }
-            )
-            if node0_as == NodeIs.OUTPUT:
-                return True, node0_as_output_data
+        if node0_as is not NodeIs.INPUT:
+            if self.network.has_edge(node1_idx, node0_idx):
+                node0_as_output_strength = self.network.get_edge_data(
+                    node1_idx, node0_idx
+                )
+                node0_as_output_data = pl.DataFrame(
+                    {
+                        "from": node1,
+                        "to": node0,
+                        "strength": node0_as_output_strength,
+                    }
+                )
+                if node0_as == NodeIs.OUTPUT:
+                    return True, node0_as_output_data
 
-            node0_as_any_data.extend(node0_as_output_data)
+                dataframes.append(node0_as_output_data)
+
+        node0_as_any_data = (
+            pl.concat(dataframes) if dataframes else pl.DataFrame()
+        )
 
         return not node0_as_any_data.is_empty(), node0_as_any_data
