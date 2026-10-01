@@ -704,3 +704,42 @@ class Connections:
         )
 
         return not node0_as_any_data.is_empty(), node0_as_any_data
+
+    def bidirectional_connections(
+        self,
+        node_id: dict[str, str],
+        connections_lookup: ConnectionsLookup = ConnectionsLookup.REPORTED,
+    ) -> pl.DataFrame:
+        """Return nodes bidirectionally connected to a node.
+
+        Args:
+            node_id: dict[str, str]
+                Information uniquely identifying the node.
+            connections_lookup: ConnectionsLookup
+                The source to use when searching for connections. One can
+                choose to use either the `.network` (REPORTED) or `.edge_info`
+                (ALL) as the source from which to find connections.
+
+        Returns:
+            connections: pl.DataFrame
+                Information for nodes with connections in both directions.
+
+        Raises:
+            ValueError:
+                If `node_id` does not identify exactly one node.
+        """
+        connections_lookup = self._get_available_connection_lookup(
+            connections_lookup
+        )
+        node_idx = self._get_unique_node_index(node_id)
+
+        connections_as_input, connections_as_output = self.direct_connections(
+            node_idx,
+            connections_lookup=connections_lookup,
+        )
+
+        bidirectional_indexes = set(connections_as_input) & set(
+            connections_as_output
+        )
+
+        return self.node_information_from_index(bidirectional_indexes)
