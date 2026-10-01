@@ -709,37 +709,66 @@ class Connections:
         self,
         node_id: dict[str, str],
         connections_lookup: ConnectionsLookup = ConnectionsLookup.REPORTED,
-    ) -> pl.DataFrame:
-        """Return nodes bidirectionally connected to a node.
+    ) -> tuple[bool, pl.DataFrame]:
+        """Return bidirectional connections to nodes matching `node_id`.
 
         Args:
-            node_id: dict[str, str]
-                Information uniquely identifying the node.
-            connections_lookup: ConnectionsLookup
-                The source to use when searching for connections. One can
-                choose to use either the `.network` (REPORTED) or `.edge_info`
-                (ALL) as the source from which to find connections.
+            node_id:
+                Information identifying one or more nodes.
+            connections_lookup:
+                The source to use when searching for connections.
 
         Returns:
-            connections: pl.DataFrame
-                Information for nodes with connections in both directions.
-
-        Raises:
-            ValueError:
-                If `node_id` does not identify exactly one node.
+            has_connections:
+                Whether any bidirectional connections exist.
+            connections:
+                Information about the bidirectional connections.
         """
         connections_lookup = self._get_available_connection_lookup(
             connections_lookup
         )
-        node_idx = self._get_unique_node_index(node_id)
 
-        connections_as_input, connections_as_output = self.direct_connections(
-            node_idx,
-            connections_lookup=connections_lookup,
-        )
+        node_indexes = self.node_indexes_from_information(**node_id).to_list()
 
-        bidirectional_indexes = set(connections_as_input) & set(
-            connections_as_output
-        )
+        connections = []
 
-        return self.node_information_from_index(bidirectional_indexes)
+        for node_idx in node_indexes:
+            connections_as_input, connections_as_output = (
+                self.direct_connections(
+                    node_idx,
+                    connections_lookup=connections_lookup,
+                )
+            )
+
+            bidirectional_indexes = set(connections_as_input) & set(
+                connections_as_output
+            )
+
+            node_info = self.node_information_from_index([node_idx])
+
+            current_node_id = {
+                key: node_info.get_column(key).item() for key in node_id
+            }
+
+            for connection_idx in bidirectional_indexes:
+                connected_node_info = self.node_information_from_index(
+                    [connection_idx]
+                )
+
+                connected_node_id = {
+                    key: connected_node_info.get_column(key).item()
+                    for key in node_id
+                }
+
+                _, connection_info = self.direct_connection_between(
+                    current_node_id,
+                    connected_node_id,
+                    connections_lookup=connections_lookup,
+                )
+
+                connections.append(connection_info)
+
+        if not connections:
+            return False, pl.DataFrame()
+
+        return True, pl.concat(connections)
