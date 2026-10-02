@@ -14,6 +14,7 @@ def nodes() -> pl.DataFrame:
     return pl.DataFrame(
         {
             "name": ["A", "B", "C", "D"],
+            "idx": [0, 1, 2, 3],
             "group": ["AB", "AB", "C", "D"],
             "notes": [
                 "A is part of group AB",
@@ -52,10 +53,10 @@ def edge_info() -> pl.DataFrame:
     "A simple 'edge information' frame for testing setup."
     return pl.DataFrame(
         {
-            "from": ["A", "B", "A", "A", "C"],
-            "to": ["B", "C", "C", "C", "D"],
-            "source_node_idx": [0, 1, 0, 0, 2],  # not always present
-            "target_node_idx": [1, 2, 2, 2, 3],  # not always present
+            "from_id": ["A", "B", "A", "A", "C"],
+            "to_id": ["B", "C", "C", "C", "D"],
+            "from": [0, 1, 0, 0, 2],
+            "to": [1, 2, 2, 2, 3],
             "used": ["yes", "yes", "yes", "no", "yes"],
             "paper": [
                 "author et al., 1998",
