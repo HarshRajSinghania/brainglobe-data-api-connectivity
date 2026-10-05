@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 from typing import Any, Callable, Container, Hashable, Iterable
 
@@ -441,11 +442,25 @@ class Connections:
             for column in self.edge_info.columns
         }
 
-    def edge_info_filter(self, filter: dict[str, Any]) -> pl.DataFrame:
-        if self.edge_info is None:
-            raise ValueError("No edge information available.")
+    def edge_info_filter(
+        self,
+        filters: dict[str, Any],
+    ) -> pl.DataFrame | None:
+        """Return edge information matching the given filters.
 
-        return self.edge_info.filter(**filter)
+        Args:
+            filters:
+                Mapping of column names to values to filter by.
+
+        Returns:
+            Filtered edge information, or `None` if `.edge_info` is None.
+        """
+        if self.edge_info is None:
+            warnings.warn(
+                "No edge information available to filter.", UserWarning
+            )
+            return None
+        return self.edge_info.filter(**filters)
 
     def direct_connections(
         self,
