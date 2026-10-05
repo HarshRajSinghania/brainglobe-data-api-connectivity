@@ -96,4 +96,14 @@ def test_edge_info_filter_options(mini_G) -> None:
             "medium (1.0)",
             "strong (10.0)",
         ],
+        "__idx_from": [
+            0,
+            1,
+            2,
+        ],
+        "__idx_to": [
+            1,
+            2,
+            3,
+        ],
     }
