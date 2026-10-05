@@ -145,3 +145,46 @@ def test_common_connections_direction_examples(edge_table, node_as) -> None:
     )
 
     assert graph.common_connections([1, 2], node_as=node_as) == [3]
+
+
+@pytest.mark.parametrize(
+    ("connections_lookup", "expected"),
+    [
+        (ConnectionsLookup.ALL, [2, 3]),
+        (ConnectionsLookup.REPORTED, [2]),
+    ],
+)
+def test_common_connections_edge_info_differs_from_network(
+    mini_G,
+    connections_lookup,
+    expected,
+) -> None:
+    """Test common connections when edge info and network differ.
+
+    In this test A and B both connect to D in `edge_info`, but these
+    connections are not present in the network. So D [3] is only a
+    common connection when querying all edge information."""
+    extra_edges = pl.DataFrame(
+        {
+            "from_id": ["A", "B"],
+            "to_id": ["D", "D"],
+            "from": [0, 1],
+            "to": [3, 3],
+            "used": ["no", "no"],
+            "paper": ["", ""],
+            "strength": ["medium (1.0)", "medium (1.0)"],
+            "__idx_from": [0, 1],
+            "__idx_to": [3, 3],
+        }
+    )
+
+    mini_G.edge_info = pl.concat([mini_G.edge_info, extra_edges])
+
+    assert (
+        mini_G.common_connections(
+            [0, 1],
+            node_as=NodeIs.INPUT,
+            connections_lookup=connections_lookup,
+        )
+        == expected
+    )
