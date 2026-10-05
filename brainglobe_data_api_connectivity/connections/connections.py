@@ -703,7 +703,21 @@ class Connections:
         node: int | dict[str, str | int],
         connections_lookup: ConnectionsLookup = ConnectionsLookup.REPORTED,
     ) -> Tuple[bool, pl.DataFrame]:
-        """Report all bidirectional connections of a node."""
+        """Report all bidirectional connections of a node.
+
+        A connection is considered bidirectional when an edge exists both from
+        `node` to another node and from that node back to `node`.
+
+        Args:
+            node:
+                Index (int) or node information (dict) identifying the node.
+            connections_lookup:
+                Source from which to find connections.
+
+        Returns:
+            Whether any bidirectional connections exist (bool) and the matching
+            connections (pl.DataFrame).
+        """
 
         connections_lookup = self._get_available_connection_lookup(
             connections_lookup
