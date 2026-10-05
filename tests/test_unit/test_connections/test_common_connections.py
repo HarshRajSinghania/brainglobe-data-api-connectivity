@@ -2,6 +2,7 @@ import polars as pl
 import pytest
 
 from brainglobe_data_api_connectivity.connections import Connections
+from brainglobe_data_api_connectivity.connections.query_opts import NodeIs
 
 
 @pytest.fixture
@@ -78,8 +79,21 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
     return Connections(nodes, edge_list, edge_info)
 
 
-def test_common_connections(mini_G) -> None:
+@pytest.mark.parametrize(
+    ("node_indices", "node_as", "expected"),
+    [
+        ([0, 1], NodeIs.ANY, [2]),
+        ([0, 1], NodeIs.INPUT, [2]),
+        ([1, 2], NodeIs.OUTPUT, [0]),
+    ],
+)
+def test_common_connections(
+    mini_G,
+    node_indices,
+    node_as,
+    expected,
+) -> None:
     """Return nodes directly connected to all given nodes."""
-    common = mini_G.common_connections([0, 1])
+    common = mini_G.common_connections(node_indices, node_as=node_as)
 
-    assert common == [2]
+    assert common == expected
