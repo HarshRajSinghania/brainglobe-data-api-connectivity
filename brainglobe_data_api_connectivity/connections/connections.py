@@ -520,3 +520,27 @@ class Connections:
                 )
 
         return connections_as_input, connections_as_output
+
+    def common_connections(
+        self,
+        nodes: list[int],
+        node_as: NodeIs = NodeIs.ANY,
+        connections_lookup: ConnectionsLookup = ConnectionsLookup.REPORTED,
+    ) -> set[int]:
+        """"""
+        connections = []
+
+        for node in nodes:
+            inputs, outputs = self.direct_connections(
+                node,
+                connections_lookup=connections_lookup,
+            )
+
+            if node_as == NodeIs.INPUT:
+                connections.append(set(outputs))
+            elif node_as == NodeIs.OUTPUT:
+                connections.append(set(inputs))
+            else:
+                connections.append(set(inputs) | set(outputs))
+
+        return set.intersection(*connections) if connections else set()
