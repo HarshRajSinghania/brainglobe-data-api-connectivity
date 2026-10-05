@@ -238,7 +238,7 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
         ),
     ],
 )
-def test_has_direct_connection_between(
+def test_direct_connection_between(
     mini_G,
     node0,
     node1,
