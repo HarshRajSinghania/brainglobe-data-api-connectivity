@@ -31,7 +31,7 @@ class ConnectionsLookup(StrEnum):
 
     At a glance:
     - ALL : Use the `.edge_info`, if it exists, to lookup connections.
-    - REPORTED : Use the `.network` to lookup connections.
+    - NETWORK : Use the `.network` to lookup connections.
 
     The network objects that are constructed by the API use so-called
     "reported" connection data, which is essentially the information per
@@ -46,4 +46,4 @@ class ConnectionsLookup(StrEnum):
     """
 
     ALL = "all"
-    REPORTED = "reported"
+    NETWORK = "network"

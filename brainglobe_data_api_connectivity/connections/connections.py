@@ -433,7 +433,7 @@ class Connections:
         self,
         node_internal_index: int,
         node_as: NodeIs = NodeIs.ANY,
-        connections_lookup: ConnectionsLookup = ConnectionsLookup.REPORTED,
+        connections_lookup: ConnectionsLookup = ConnectionsLookup.NETWORK,
     ) -> tuple[list[int], list[int]]:
         """
         Report direct connections of a node.
@@ -477,7 +477,7 @@ class Connections:
         connections_as_input = []
         connections_as_output = []
 
-        if connections_lookup == ConnectionsLookup.REPORTED:
+        if connections_lookup == ConnectionsLookup.NETWORK:
             if node_as != NodeIs.OUTPUT:
                 connections_as_input = [
                     i
