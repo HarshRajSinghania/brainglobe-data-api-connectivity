@@ -2,7 +2,10 @@ import polars as pl
 import pytest
 
 from brainglobe_data_api_connectivity.connections import Connections
-from brainglobe_data_api_connectivity.connections.query_opts import NodeIs
+from brainglobe_data_api_connectivity.connections.query_opts import (
+    ConnectionsLookup,
+    NodeIs,
+)
 
 
 @pytest.fixture
@@ -82,9 +85,25 @@ def mini_G(nodes, edge_list, edge_info) -> Connections:
 @pytest.mark.parametrize(
     ("node_indices", "node_as", "expected"),
     [
-        ([0, 1], NodeIs.ANY, [2]),
-        ([0, 1], NodeIs.INPUT, [2]),
-        ([1, 2], NodeIs.OUTPUT, [0]),
+        pytest.param(
+            [0, 1],
+            NodeIs.ANY,
+            [2],
+            id="common connections in either direction",
+        ),
+        pytest.param(
+            [0, 1], NodeIs.INPUT, [2], id="common output of nodes 0 and 1"
+        ),
+        pytest.param(
+            [1, 2], NodeIs.OUTPUT, [0], id="common input to nodes 1 and 2"
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    "connections_lookup",
+    [
+        pytest.param(ConnectionsLookup.ALL, id="all edge information"),
+        pytest.param(ConnectionsLookup.REPORTED, id="in network"),
     ],
 )
 def test_common_connections(
@@ -92,9 +111,14 @@ def test_common_connections(
     node_indices,
     node_as,
     expected,
+    connections_lookup,
 ) -> None:
     """Return nodes directly connected to all given nodes."""
-    common = mini_G.common_connections(node_indices, node_as=node_as)
+    common = mini_G.common_connections(
+        node_indices,
+        node_as=node_as,
+        connections_lookup=connections_lookup,
+    )
     assert common == expected
 
 
