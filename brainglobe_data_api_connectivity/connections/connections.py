@@ -527,7 +527,21 @@ class Connections:
         node_as: NodeIs = NodeIs.ANY,
         connections_lookup: ConnectionsLookup = ConnectionsLookup.REPORTED,
     ) -> set[int]:
-        """"""
+        """
+        Return internal indices of nodes directly connected to all given nodes.
+
+         Args:
+             nodes:
+                 Internal indices of nodes for which to find common
+                 connections.
+             node_as:
+                 Whether the given nodes are inputs, outputs, or can be either.
+             connections_lookup:
+                 Source from which to find connections.
+
+         Returns:
+             Internal indices of common directly connected nodes.
+        """
         connections = []
 
         for node in nodes:
