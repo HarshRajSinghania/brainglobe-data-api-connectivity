@@ -526,21 +526,21 @@ class Connections:
         nodes: list[int],
         node_as: NodeIs = NodeIs.ANY,
         connections_lookup: ConnectionsLookup = ConnectionsLookup.REPORTED,
-    ) -> set[int]:
+    ) -> list[int]:
         """
         Return internal indices of nodes directly connected to all given nodes.
 
          Args:
-             nodes:
+             nodes: list[int]
                  Internal indices of nodes for which to find common
                  connections.
-             node_as:
+             node_as: NodeIs
                  Whether the given nodes are inputs, outputs, or can be either.
-             connections_lookup:
+             connections_lookup: ConnectionsLookup
                  Source from which to find connections.
 
          Returns:
-             Internal indices of common directly connected nodes.
+             List with internal indices of common directly connected nodes.
         """
         connections = []
 
@@ -557,4 +557,4 @@ class Connections:
             else:
                 connections.append(set(inputs) | set(outputs))
 
-        return set.intersection(*connections) if connections else set()
+        return sorted(set.intersection(*connections)) if connections else []
