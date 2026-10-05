@@ -441,6 +441,12 @@ class Connections:
             for column in self.edge_info.columns
         }
 
+    def edge_info_filter(self, filter: dict[str, Any]) -> pl.DataFrame:
+        if self.edge_info is None:
+            raise ValueError("No edge information available.")
+
+        return self.edge_info.filter(**filter)
+
     def direct_connections(
         self,
         node_internal_index: int,

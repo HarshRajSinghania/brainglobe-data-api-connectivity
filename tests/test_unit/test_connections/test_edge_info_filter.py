@@ -107,3 +107,39 @@ def test_edge_info_filter_options(mini_G) -> None:
             3,
         ],
     }
+
+
+@pytest.mark.parametrize(
+    ("filters", "expected_n_rows"),
+    [
+        pytest.param(
+            {"strength": "medium (1.0)"},
+            2,
+            id="strength",
+        ),
+        pytest.param(
+            {"used": "no"},
+            1,
+            id="not used in network",
+        ),
+        pytest.param(
+            {"paper": "author et al., 2020"},
+            2,
+            id="paper",
+        ),
+        pytest.param(
+            {"paper": "author et al., 2020", "used": "yes"},
+            1,
+            id="multiple filters",
+        ),
+    ],
+)
+def test_edge_info_filter(
+    mini_G,
+    filters,
+    expected_n_rows,
+) -> None:
+    """Return filtered edge information and check number of rows."""
+    filtered_edge_info = mini_G.edge_info_filter(filters)
+
+    assert filtered_edge_info.shape[0] == expected_n_rows
