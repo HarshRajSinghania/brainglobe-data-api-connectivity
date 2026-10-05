@@ -541,6 +541,31 @@ class Connections:
 
          Returns:
              List with internal indices of common directly connected nodes.
+
+
+        Example:
+            Given:
+
+                1 -> 3
+                2 -> 3
+
+            Nodes 1 and 2 are INPUTS to node 3.
+            Node 3 is an OUTPUT of nodes 1 and 2.
+
+            common_connections([1, 2], node_as=NodeIs.INPUT)
+            -> [3]
+
+            Given:
+
+                3 -> 1
+                3 -> 2
+
+            Nodes 1 and 2 are OUTPUTS of node 3.
+            Node 3 is an INPUT to nodes 1 and 2.
+
+            common_connections([1, 2], node_as=NodeIs.OUTPUT)
+            -> [3]
+
         """
         connections = []
 

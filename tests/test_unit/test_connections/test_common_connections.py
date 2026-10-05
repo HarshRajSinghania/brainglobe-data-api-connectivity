@@ -96,3 +96,28 @@ def test_common_connections(
     """Return nodes directly connected to all given nodes."""
     common = mini_G.common_connections(node_indices, node_as=node_as)
     assert common == expected
+
+
+@pytest.mark.parametrize(
+    ("edge_table", "node_as"),
+    [
+        pytest.param(
+            [(1, 3, 1.0), (2, 3, 1.0)],
+            NodeIs.INPUT,
+            id="nodes 1 and 2 are inputs to 3",
+        ),
+        pytest.param(
+            [(3, 1, 1.0), (3, 2, 1.0)],
+            NodeIs.OUTPUT,
+            id="nodes 1 and 2 are outputs of 3",
+        ),
+    ],
+)
+def test_common_connections_direction_examples(edge_table, node_as) -> None:
+    """Nodes 1 and 2 share node 3 in the specified direction only."""
+    graph = Connections(
+        node_info=pl.DataFrame({"idx": [0, 1, 2, 3]}),
+        edge_table=edge_table,
+    )
+
+    assert graph.common_connections([1, 2], node_as=node_as) == [3]
