@@ -697,3 +697,47 @@ class Connections:
             node1,
             node0_as,
         )
+
+    def bidirectional_connections(
+        self,
+        node: int | dict[str, str | int],
+        connections_lookup: ConnectionsLookup = ConnectionsLookup.REPORTED,
+    ) -> Tuple[bool, pl.DataFrame]:
+        """Report all bidirectional connections of a node."""
+
+        connections_lookup = self._get_available_connection_lookup(
+            connections_lookup
+        )
+
+        node_idx = (
+            self._get_unique_node_index(node)
+            if isinstance(node, dict)
+            else node
+        )
+
+        connections_as_input, connections_as_output = self.direct_connections(
+            node_idx,
+            connections_lookup=connections_lookup,
+        )
+
+        bidirectional_indexes = set(connections_as_input) & set(
+            connections_as_output
+        )
+
+        connection_frames = []
+
+        for other_idx in bidirectional_indexes:
+            _, connections = self.direct_connection_between(
+                node_idx,
+                other_idx,
+                connections_lookup=connections_lookup,
+                node0_as=NodeIs.ANY,
+            )
+            connection_frames.append(connections)
+
+        if not connection_frames:
+            return False, pl.DataFrame()
+
+        connections = pl.concat(connection_frames)
+
+        return True, connections
