@@ -145,6 +145,12 @@ def test_edge_info_filter(
     assert filtered_edge_info.shape[0] == expected_n_rows
 
 
+def test_edge_info_filter_options_unavailable(mini_G) -> None:
+    """Return an empty mapping when edge information is unavailable."""
+    mini_G.edge_info = None
+    assert mini_G.edge_info_filter_options() == {}
+
+
 def test_edge_info_filter_no_edge_info(mini_G) -> None:
     """Warn and return None when edge information is unavailable."""
     mini_G.edge_info = None
