@@ -279,16 +279,26 @@ def test_direct_connection_between_no_edge_info(mini_G):
     assert connections.shape == (1, 3)
 
 
-def test_get_unique_node_index_nonexistent_node(mini_G):
+def test_direct_connection_between_nonexistent_node(mini_G):
     """Test error when a node does not exist."""
+
+    assert len(mini_G.node_indexes_from_information(name="NONEXISTENT")) == 0
+
     with pytest.raises(
         ValueError,
         match="Expected 1 unique node, but got 0",
     ):
-        mini_G._get_unique_node_index({"name": "NONEXISTENT"})
+        mini_G.direct_connection_between(
+            {"name": "NONEXISTENT"},
+            {"name": "A"},
+        )
 
 
-def test_get_unique_node_index_non_unique_node(nodes, edge_list, edge_info):
+def test_direct_connection_between_non_unique_node(
+    nodes,
+    edge_list,
+    edge_info,
+):
     """Test error when a node is not unique."""
     nodes = nodes.with_columns(pl.col("name").replace("C", "A"))
     mini_G = Connections(nodes, edge_list, edge_info)
@@ -299,4 +309,7 @@ def test_get_unique_node_index_non_unique_node(nodes, edge_list, edge_info):
         ValueError,
         match="Expected 1 unique node, but got 2",
     ):
-        mini_G._get_unique_node_index({"name": "A"})
+        mini_G.direct_connection_between(
+            {"name": "A"},
+            {"name": "B"},
+        )
