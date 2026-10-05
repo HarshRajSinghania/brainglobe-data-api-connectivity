@@ -429,6 +429,18 @@ class Connections:
             pl.col(self._node_internal_index_col).is_in(node_indexes)
         )
 
+    def edge_info_filter_options(self) -> dict[str, list]:
+        """Return values available for filtering edge information."""
+        if self.edge_info is None:
+            return {}
+
+        return {
+            column: self.edge_info[column]
+            .unique(maintain_order=True)
+            .to_list()
+            for column in self.edge_info.columns
+        }
+
     def direct_connections(
         self,
         node_internal_index: int,
