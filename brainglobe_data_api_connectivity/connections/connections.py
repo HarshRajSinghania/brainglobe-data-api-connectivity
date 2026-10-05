@@ -551,10 +551,14 @@ class Connections:
             )
 
             if node_as == NodeIs.INPUT:
-                connections.append(set(outputs))
+                node_connections = inputs
             elif node_as == NodeIs.OUTPUT:
-                connections.append(set(inputs))
+                node_connections = outputs
             else:
-                connections.append(set(inputs) | set(outputs))
+                node_connections = inputs + outputs
 
-        return sorted(set.intersection(*connections)) if connections else []
+            connections.append(set(node_connections))
+
+        common_connections = sorted(set.intersection(*connections))
+
+        return common_connections

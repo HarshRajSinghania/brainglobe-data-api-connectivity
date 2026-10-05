@@ -95,5 +95,4 @@ def test_common_connections(
 ) -> None:
     """Return nodes directly connected to all given nodes."""
     common = mini_G.common_connections(node_indices, node_as=node_as)
-
     assert common == expected
