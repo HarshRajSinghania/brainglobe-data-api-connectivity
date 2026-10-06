@@ -5,10 +5,14 @@ from collections.abc import Iterable
 
 
 def rename_columns(columns: Iterable[str]) -> list[str]:
-    """Return standardised column names as a list.
+    """Standardise DataFrame column names.
 
-    Names contain lowercase letters, digits and underscores. Leading digits
-    move to the end, and leading or trailing underscores are removed.
+    Returns a new index for the columns.
+
+    Column names should never start with a digit and can only contain
+     - lowercase characters a-z
+     - digits 0-9
+     - underscores
     """
     cleaned = []
     for column in columns:
