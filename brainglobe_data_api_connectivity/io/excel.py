@@ -4,61 +4,36 @@ import re
 from pathlib import Path
 
 import polars as pl
-from fastexcel import read_excel
 
 
 def get_df_from_excel(
     file: Path,
-    sheet_name: str | None = None,
-    data_range: tuple[str, str] | None = None,
-    header: int | list[int] | None = None,
+    sheet_name: str,
+    data_range: tuple[str, str],
+    header: int | None = None,
 ) -> pl.DataFrame:
     """Return DataFrame sliced to given row/column ranges."""
-    columns, start_row, n_rows = None, 0, None
-    if data_range is not None:
-        (first_col, last_col), (first_row, last_row) = get_cell_range(
-            data_range
-        )
-        columns = list(range(first_col, last_col + 1))
-        start_row, n_rows = first_row - 1, last_row - first_row + 1
+    col_range, row_range = get_cell_range(data_range)
 
-    reader = read_excel(file)
-    sheet = sheet_name or 0
-    names = None
-    if isinstance(header, list):
-        consumed_rows = max(header) + 1
-        headings = reader.load_sheet(
-            sheet,
-            header_row=None,
-            skip_rows=start_row,
-            n_rows=consumed_rows,
-            use_columns=columns,
-        ).to_polars()
-        rows = []
-        for i in header:
-            row = headings.row(i)
-            if i != header[-1]:
-                row = pl.Series(row).fill_null(strategy="forward").to_list()
-            rows.append(row)
-        names = [
-            "_".join(str(v) for v in values if v is not None)
-            for values in zip(*rows)
-        ]
-        header = None
-    else:
-        consumed_rows = header + 1 if header is not None else 0
+    start_row, end_row = row_range
+    start_col, end_col = col_range
 
-    table = reader.load_sheet(
-        sheet,
-        header_row=start_row + header if header is not None else None,
-        skip_rows=0 if header is not None else start_row + consumed_rows,
-        n_rows=n_rows - consumed_rows if n_rows is not None else None,
-        use_columns=columns,
-        schema_sample_rows=None,
-    ).to_polars()
-    if names is not None or header is None:
-        table.columns = names or [str(i) for i in range(table.width)]
-    return table
+    skiprows = start_row - 1
+    nrows = end_row - start_row + 1
+    usecols = list(range(start_col, end_col + 1))
+
+    df = pl.read_excel(
+        file,
+        sheet_name=sheet_name,
+        columns=usecols,
+        has_header=header is not None,
+        read_options={
+            "skip_rows": skiprows,
+            "n_rows": nrows,
+        },
+    )
+
+    return df
 
 
 def validate_cell_reference(ref: str) -> None:
