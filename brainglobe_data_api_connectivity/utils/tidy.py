@@ -7,7 +7,7 @@ from collections.abc import Iterable
 def rename_columns(columns: Iterable[str]) -> list[str]:
     """Standardise DataFrame column names.
 
-    Returns a new index for the columns.
+    Returns list of strings with column names.
 
     Column names should never start with a digit and can only contain
      - lowercase characters a-z
