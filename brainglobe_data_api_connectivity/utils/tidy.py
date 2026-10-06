@@ -1,25 +1,18 @@
-"""Tidy excel input data"""
+"""Tidy Excel input data."""
 
-import pandas as pd
+import re
+from collections.abc import Iterable
 
 
-def rename_columns(columns: pd.Index) -> pd.Index:
-    """Standardise DataFrame column names.
+def rename_columns(columns: Iterable[str]) -> list[str]:
+    """Return standardised column names as a list.
 
-    Returns a new index for the columns.
-
-    Column names should never start with a diget and can only contain
-     - lowercase characters a-z
-     - digits 0-9
-     - underscores
+    Names contain lowercase letters, digits and underscores. Leading digits
+    move to the end, and leading or trailing underscores are removed.
     """
-    cleaned = (
-        columns.str.lower()
-        .str.replace(r"[^a-z0-9]+", "_", regex=True)
-        .str.replace(
-            r"^(\d+)([a-z0-9_]+)$", r"\2_\1", regex=True
-        )  # move leading digits to the end
-        .str.replace(r"_+", "_", regex=True)  # collapse multiple _
-        .str.strip("_")  # trim any underscores from start or end
-    )
-    return pd.Index(cleaned)
+    cleaned = []
+    for column in columns:
+        name = re.sub(r"[^a-z0-9]+", "_", column.lower())
+        name = re.sub(r"^(\d+)([a-z0-9_]+)$", r"\2_\1", name)
+        cleaned.append(re.sub(r"_+", "_", name).strip("_"))
+    return cleaned

@@ -1,4 +1,4 @@
-import numpy as np
+import polars as pl
 import pytest
 
 from brainglobe_data_api_connectivity.io.validate_input import (
@@ -10,12 +10,29 @@ from brainglobe_data_api_connectivity.io.validate_input import (
     ["matrix", "error"],
     [
         pytest.param(
-            np.zeros((4, 4)),
+            pl.DataFrame(
+                [
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                ],
+                orient="row",
+            ),
             None,
             id="valid",
         ),
         pytest.param(
-            np.zeros((5, 4)),
+            pl.DataFrame(
+                [
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                ],
+                orient="row",
+            ),
             ValueError("matrix must be square, but got 5 rows and 4 columns."),
             id="Adjacency matrix should be square",
         ),
