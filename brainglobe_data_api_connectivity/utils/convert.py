@@ -1,3 +1,4 @@
+import numpy as np
 import polars as pl
 
 
@@ -27,34 +28,30 @@ def convert_matrix_to_edge_table(
             - 2. region identifier (or index) to which the edge points
             - 3. edge weight
     """
-    matrix = matrix.clone()
-    matrix.columns = [str(i) for i in range(matrix.width)]
 
-    # Convert the adjacency matrix to an edge table.
-    edges = (
-        matrix.with_row_index("from")
-        .unpivot(
-            index="from",
-            variable_name="to",
-            value_name="weight",
+    adjacency_matrix = matrix.to_numpy()
+
+    if include_zeros is False:
+        connections = adjacency_matrix.nonzero()
+        weights = adjacency_matrix[connections]
+        edge_table = np.column_stack(connections + (weights,))
+    else:
+        rows, cols = np.indices(adjacency_matrix.shape)
+        weights = adjacency_matrix[rows, cols]
+        edge_table = np.column_stack(
+            (rows.ravel(), cols.ravel(), weights.ravel())
         )
-        .with_columns(
-            pl.col("from", "to").cast(pl.Int64),
-        )
-        .filter(pl.col("weight").is_not_null())
+
+    edge_table_df = pl.DataFrame(
+        edge_table,
+        schema=["from", "to", "weight"],
+        orient="row",
     )
 
-    if not include_zeros:
-        edges = edges.filter(pl.col("weight") != 0)
-
     if region_ids is not None:
-        region_map = dict(enumerate(region_ids.to_list()))
-        edges = edges.with_columns(
-            pl.col("from", "to").replace_strict(
-                region_map,
-                return_dtype=region_ids.dtype,
-            )
+        region_map = dict(enumerate(region_ids))
+        edge_table_df = edge_table_df.with_columns(
+            pl.col("from", "to").replace_strict(region_map)
         )
 
-    edges = edges.sort("from", "to")
-    return edges
+    return edge_table_df
