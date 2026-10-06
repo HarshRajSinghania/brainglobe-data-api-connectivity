@@ -27,22 +27,34 @@ def convert_matrix_to_edge_table(
             - 2. region identifier (or index) to which the edge points
             - 3. edge weight
     """
-    values = matrix.clone()
-    values.columns = [str(i) for i in range(matrix.width)]
+    matrix = matrix.clone()
+    matrix.columns = [str(i) for i in range(matrix.width)]
+
+    # Convert the adjacency matrix to an edge table.
     edges = (
-        values.with_row_index("from")
-        .unpivot(index="from", variable_name="to", value_name="weight")
-        .with_columns(pl.col("from", "to").cast(pl.Int64))
+        matrix.with_row_index("from")
+        .unpivot(
+            index="from",
+            variable_name="to",
+            value_name="weight",
+        )
+        .with_columns(
+            pl.col("from", "to").cast(pl.Int64),
+        )
         .filter(pl.col("weight").is_not_null())
-        .sort("from", "to")
     )
+
     if not include_zeros:
         edges = edges.filter(pl.col("weight") != 0)
+
     if region_ids is not None:
+        region_map = dict(enumerate(region_ids.to_list()))
         edges = edges.with_columns(
             pl.col("from", "to").replace_strict(
-                dict(enumerate(region_ids.to_list())),
+                region_map,
                 return_dtype=region_ids.dtype,
             )
         )
+
+    edges = edges.sort("from", "to")
     return edges
