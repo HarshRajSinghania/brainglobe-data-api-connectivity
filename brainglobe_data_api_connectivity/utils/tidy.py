@@ -1,4 +1,4 @@
-"""Tidy Excel input data."""
+"""Tidy excel input data."""
 
 import re
 from collections.abc import Iterable
